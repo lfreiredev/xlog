@@ -1,0 +1,22 @@
+{
+  "name": "xlog-monorepo",
+  "private": true,
+  "packageManager": "pnpm@9.12.0",
+  "workspaces": [
+    "packages/*",
+    "examples/*"
+  ],
+  "scripts": {
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "lint": "echo \"lint not configured\"",
+    "dev": "pnpm --filter nest-api dev"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.30",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.7.1",
+    "typescript": "^5.5.4",
+    "vitest": "^1.6.0"
+  }
+}
