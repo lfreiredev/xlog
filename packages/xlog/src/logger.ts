@@ -94,15 +94,21 @@ export class LoggerImpl implements Logger {
       const full = this.queue.length >= this.buffer.maxSize;
       if (full) {
         if (this.buffer.backpressure === "drop") return;
-        if (this.buffer.backpressure === "sample" && Math.random() > this.buffer.sampleRate) return;
+        if (this.buffer.backpressure === "sample") {
+          if (Math.random() > this.buffer.sampleRate) return;
+          const event = this.buildEvent(level, msg, data);
+          this.writeToSinks(event);
+          return;
+        }
       }
 
-      const event = this.buildEvent(level, msg, data);
       if (full && this.buffer.backpressure === "sync") {
+        const event = this.buildEvent(level, msg, data);
         this.writeToSinks(event);
         return;
       }
 
+      const event = this.buildEvent(level, msg, data);
       this.queue.push(event);
       this.scheduleDrain();
       return;
