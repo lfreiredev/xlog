@@ -13,3 +13,11 @@ export type {
 export { ConsoleSink } from "./sinks/console";
 export { FileSink } from "./sinks/file";
 export { redactValue, resolveRedactOptions } from "./redact";
+export {
+  WalWriter,
+  WalReader,
+  recoverSegment,
+  listSegments,
+  scanSegment,
+  readRecordAt
+} from "./store/wal";

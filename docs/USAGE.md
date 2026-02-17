@@ -165,3 +165,38 @@ curl -s -X POST http://localhost:3000/order \
 ```
 
 Note: when using `xlog-nest`, logs are flushed automatically on app shutdown.
+
+## V3 WAL Store (Preview)
+
+The V3 store is an append-only, segmented log store with per-record checksums and
+indexes for time + requestId/traceId.
+
+```ts
+import { WalWriter, WalReader } from "xlog";
+
+const writer = new WalWriter({
+  dir: "./logs/wal",
+  segmentMaxBytes: 256 * 1024 * 1024,
+  indexStride: 100,
+  enableTraceIndex: true,
+  enableRequestIndex: true
+});
+
+writer.write({
+  ts: new Date().toISOString(),
+  level: "info",
+  msg: "hello",
+  service: "api",
+  env: "prod",
+  context: { requestId: "r1", traceId: "t1" }
+});
+
+writer.close();
+
+const reader = new WalReader("./logs/wal");
+for (const rec of reader.scanByRequestId("r1")) {
+  console.log(rec.event.msg);
+}
+```
+
+For full details, see `docs/V3_SPEC.md`.
