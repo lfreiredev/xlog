@@ -105,7 +105,13 @@ import { FileSink } from "xlog";
 const logger = createLogger({
   service: "api",
   env: "dev",
-  sinks: [new FileSink({ filePath: "./logs/app.log", maxBytes: 5_000_000 })]
+  sinks: [
+    new FileSink({
+      filePath: "./logs/app.log",
+      maxBytes: 5_000_000,
+      batch: { maxEvents: 100, maxBytes: 64_000, flushIntervalMs: 100 }
+    })
+  ]
 });
 ```
 
