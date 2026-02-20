@@ -1,0 +1,42 @@
+<main class="shell">
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">Log Viewer</p>
+      <h1>Live WAL Stream</h1>
+      <p class="subtitle">Tail and review logs in one place.</p>
+    </div>
+    <div class="status">
+      <span class="dot" [class.live]="status() === 'Live'"></span>
+      {{ status() }}
+    </div>
+  </header>
+
+  <section class="controls">
+    <div class="left">
+      <button class="ghost" (click)="loadOlder()" [disabled]="loadingMore()">
+        {{ loadingMore() ? 'Loading…' : 'Load Older (500)' }}
+      </button>
+      <span class="meta">Buffer cap: 2000</span>
+    </div>
+    <div class="right">
+      @if (!isLive()) {
+        <button class="primary" (click)="jumpToLatest()">
+          {{ newCount() }} new logs — Jump to latest
+        </button>
+      } @else {
+        <span class="meta">Auto-following</span>
+      }
+    </div>
+  </section>
+
+  <section class="log-panel">
+    <div class="table-wrap" #logContainer (scroll)="onScroll()">
+      <table #logTable class="display compact" style="width: 100%"></table>
+    </div>
+    @if (loading()) {
+      <div class="empty overlay">Loading logs…</div>
+    } @else if (records().length === 0) {
+      <div class="empty overlay">No logs yet. Waiting for events.</div>
+    }
+  </section>
+</main>

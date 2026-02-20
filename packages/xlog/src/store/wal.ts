@@ -20,6 +20,10 @@ export interface WalRecord {
   event: LogEvent;
 }
 
+export interface WalRecordWithSize extends WalRecord {
+  size: number;
+}
+
 export interface WalSegmentInfo {
   filePath: string;
   startTsMs: number;
@@ -249,6 +253,42 @@ export function* scanSegment(
       }
       yield { offset, event };
       offset += HEADER_BYTES + len;
+    }
+  } finally {
+    fs.closeSync(fd);
+  }
+}
+
+export function* readRecordsFrom(
+  filePath: string,
+  startOffset = 0
+): Generator<WalRecordWithSize> {
+  const fd = fs.openSync(filePath, "r");
+  let offset = startOffset;
+  const size = fs.statSync(filePath).size;
+
+  try {
+    while (offset + HEADER_BYTES <= size) {
+      const header = Buffer.alloc(HEADER_BYTES);
+      fs.readSync(fd, header, 0, HEADER_BYTES, offset);
+      const magic = header.readUInt32LE(0);
+      if (magic !== MAGIC) break;
+      const version = header.readUInt16LE(4);
+      if (version !== VERSION) break;
+      const len = header.readUInt32LE(16);
+      const checksum = header.readBigUInt64LE(20);
+      if (offset + HEADER_BYTES + len > size) break;
+
+      const payload = Buffer.alloc(len);
+      fs.readSync(fd, payload, 0, len, offset + HEADER_BYTES);
+      const checksumInput = Buffer.concat([header.subarray(4, 20), payload]);
+      const expected = xxhash64(checksumInput);
+      if (expected !== checksum) break;
+
+      const event = JSON.parse(payload.toString("utf8")) as LogEvent;
+      const recordSize = HEADER_BYTES + len;
+      yield { offset, event, size: recordSize };
+      offset += recordSize;
     }
   } finally {
     fs.closeSync(fd);

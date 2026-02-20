@@ -19,5 +19,8 @@ export {
   recoverSegment,
   listSegments,
   scanSegment,
-  readRecordAt
+  readRecordAt,
+  readRecordsFrom
 } from "./store/wal";
+
+export type { WalRecordWithSize } from "./store/wal";
